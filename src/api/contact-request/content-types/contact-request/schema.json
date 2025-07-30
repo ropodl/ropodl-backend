@@ -1,0 +1,14 @@
+{
+  "kind": "collectionType",
+  "collectionName": "contact_requests",
+  "info": {
+    "singularName": "contact-request",
+    "pluralName": "contact-requests",
+    "displayName": "Contact Request"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {}
+}
