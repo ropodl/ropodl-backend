@@ -375,6 +375,7 @@ export interface AdminUser extends Struct.CollectionTypeSchema {
 
 export interface ApiBlogBlog extends Struct.CollectionTypeSchema {
   collectionName: 'blogs';
+<<<<<<< HEAD
   info: {
     displayName: 'Blog';
     pluralName: 'blogs';
@@ -417,6 +418,8 @@ export interface ApiBlogBlog extends Struct.CollectionTypeSchema {
 export interface ApiContactRequestContactRequest
   extends Struct.CollectionTypeSchema {
   collectionName: 'contact_requests';
+=======
+>>>>>>> 98f3a29
   info: {
     displayName: 'Contact Request';
     pluralName: 'contact-requests';
@@ -426,6 +429,18 @@ export interface ApiContactRequestContactRequest
     draftAndPublish: false;
   };
   attributes: {
+<<<<<<< HEAD
+=======
+    category: Schema.Attribute.Relation<'oneToOne', 'api::category.category'>;
+    content: Schema.Attribute.RichText &
+      Schema.Attribute.Required &
+      Schema.Attribute.CustomField<
+        'plugin::ckeditor5.CKEditor',
+        {
+          preset: 'defaultHtml';
+        }
+      >;
+>>>>>>> 98f3a29
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -436,6 +451,35 @@ export interface ApiContactRequestContactRequest
     > &
       Schema.Attribute.Private;
     publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiCategoryCategory extends Struct.CollectionTypeSchema {
+  collectionName: 'categories';
+  info: {
+    displayName: 'Category';
+    pluralName: 'categories';
+    singularName: 'category';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::category.category'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    slug: Schema.Attribute.UID<'title'> & Schema.Attribute.Required;
+    title: Schema.Attribute.String;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -952,7 +996,11 @@ declare module '@strapi/strapi' {
       'admin::transfer-token-permission': AdminTransferTokenPermission;
       'admin::user': AdminUser;
       'api::blog.blog': ApiBlogBlog;
+<<<<<<< HEAD
       'api::contact-request.contact-request': ApiContactRequestContactRequest;
+=======
+      'api::category.category': ApiCategoryCategory;
+>>>>>>> 98f3a29
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;
       'plugin::i18n.locale': PluginI18NLocale;
