@@ -22,9 +22,6 @@
       "targetField": "title",
       "required": true
     },
-    "content": {
-      "type": "blocks"
-    },
     "featured_image": {
       "type": "media",
       "multiple": false,
@@ -36,7 +33,15 @@
     "category": {
       "type": "relation",
       "relation": "oneToOne",
-      "target": "api::blog-category.blog-category"
+      "target": "api::category.category"
+    },
+    "content": {
+      "type": "customField",
+      "customField": "plugin::ckeditor5.CKEditor",
+      "options": {
+        "preset": "defaultHtml"
+      },
+      "required": true
     }
   }
 }
