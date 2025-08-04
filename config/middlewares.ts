@@ -5,17 +5,25 @@ export default [
     name: "strapi::security",
     config: {
       contentSecurityPolicy: {
-        useDefaults: true,
         directives: {
-          "connect-src": ["'self'", "https:"],
-          "img-src": ["'self'", "data:", "blob:", "https://ropodl.com"],
-          "media-src": ["'self'", "data:", "blob:", `https://ropodl.com`],
-          upgradeInsecureRequests: null,
+          frameAncestors: ["https://ropodl.com", "self"],
         },
       },
     },
   },
-  "strapi::cors",
+  {
+    name: "strapi::cors",
+    config: {
+      origin: [
+        // "http://localhost:3000",
+        // "http://localhost:1337",
+        "https://ropodl.com",
+      ],
+      methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"],
+      headers: ["Content-Type", "Authorization", "Origin", "Accept"],
+      keepHeaderOnError: true,
+    },
+  },
   "strapi::poweredBy",
   "strapi::query",
   "strapi::body",
