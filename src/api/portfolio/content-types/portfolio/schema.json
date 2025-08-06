@@ -1,10 +1,10 @@
 {
   "kind": "collectionType",
-  "collectionName": "categories",
+  "collectionName": "portfolios",
   "info": {
-    "singularName": "category",
-    "pluralName": "categories",
-    "displayName": "Blog - Category"
+    "singularName": "portfolio",
+    "pluralName": "portfolios",
+    "displayName": "Portfolio"
   },
   "options": {
     "draftAndPublish": true
@@ -20,6 +20,18 @@
       "targetField": "title",
       "required": true,
       "regex": "/(\\b(?:a|am|is|are|was|were|be|and|been|being|has|have|had)\\b)|([^A-Z0-9-]+)|(^-+)|(-+$)/g"
+    },
+    "content": {
+      "type": "customField",
+      "customField": "plugin::ckeditor5.CKEditor",
+      "options": {
+        "preset": "defaultHtml"
+      }
+    },
+    "portfolio_type": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::type.type"
     }
   }
 }

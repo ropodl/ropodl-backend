@@ -1,10 +1,10 @@
 {
   "kind": "collectionType",
-  "collectionName": "categories",
+  "collectionName": "tags",
   "info": {
-    "singularName": "category",
-    "pluralName": "categories",
-    "displayName": "Blog - Category"
+    "singularName": "tag",
+    "pluralName": "tags",
+    "displayName": "Blog - Tag"
   },
   "options": {
     "draftAndPublish": true

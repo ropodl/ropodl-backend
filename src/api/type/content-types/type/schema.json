@@ -1,23 +1,23 @@
 {
   "kind": "collectionType",
-  "collectionName": "categories",
+  "collectionName": "types",
   "info": {
-    "singularName": "category",
-    "pluralName": "categories",
-    "displayName": "Blog - Category"
+    "singularName": "type",
+    "pluralName": "types",
+    "displayName": "Portfolio - Type"
   },
   "options": {
     "draftAndPublish": true
   },
   "pluginOptions": {},
   "attributes": {
-    "title": {
+    "name": {
       "type": "string",
       "required": true
     },
     "slug": {
       "type": "uid",
-      "targetField": "title",
+      "targetField": "name",
       "required": true,
       "regex": "/(\\b(?:a|am|is|are|was|were|be|and|been|being|has|have|had)\\b)|([^A-Z0-9-]+)|(^-+)|(-+$)/g"
     }

@@ -21,7 +21,8 @@
       "type": "uid",
       "targetField": "title",
       "required": true,
-      "minLength": 3
+      "minLength": 3,
+      "regex": "/(\\b(?:a|am|is|are|was|were|be|and|been|being|has|have|had)\\b)|([^A-Z0-9-]+)|(^-+)|(-+$)/g"
     },
     "excerpt": {
       "type": "string",
@@ -50,6 +51,16 @@
       "type": "relation",
       "relation": "oneToOne",
       "target": "api::category.category"
+    },
+    "open_graph": {
+      "type": "component",
+      "component": "shared.open-graph",
+      "repeatable": false
+    },
+    "seo": {
+      "type": "component",
+      "component": "shared.seo",
+      "repeatable": false
     }
   }
 }
