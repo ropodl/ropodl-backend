@@ -6,7 +6,7 @@ import { csrf } from "hono/csrf";
 import { serveStatic } from "@hono/node-server/serve-static";
 import "dotenv/config";
 
-import routes from "./src/routes/index.js";
+import routes from "./src/route/index.js";
 
 const app = new Hono();
 app.use(logger());
