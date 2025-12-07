@@ -13,6 +13,7 @@ node_modules/
 
 # build
 dist/
+drizzle/
 
 # env
 .env
