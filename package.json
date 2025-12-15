@@ -12,15 +12,21 @@
   },
   "dependencies": {
     "@hono/node-server": "^1.19.6",
+    "@types/bcrypt": "^6.0.0",
+    "bcrypt": "^6.0.0",
     "dotenv": "^17.2.3",
     "drizzle-orm": "^0.44.7",
     "drizzle-seed": "^0.3.1",
     "hono": "^4.10.7",
-    "pg": "^8.16.3"
+    "pg": "^8.16.3",
+    "prettier": "^3.7.4"
   },
   "devDependencies": {
+    "@hono/eslint-config": "^2.0.3",
     "@types/pg": "^8.15.6",
     "drizzle-kit": "^0.31.7",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
     "tsx": "^4.21.0",
     "typescript": "^5.8.3"
   }
