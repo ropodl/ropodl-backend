@@ -19,7 +19,8 @@
     "drizzle-seed": "^0.3.1",
     "hono": "^4.10.7",
     "pg": "^8.16.3",
-    "prettier": "^3.7.4"
+    "prettier": "^3.7.4",
+    "sharp": "^0.34.5"
   },
   "devDependencies": {
     "@hono/eslint-config": "^2.0.3",
@@ -28,6 +29,6 @@
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
     "tsx": "^4.21.0",
-    "typescript": "^5.8.3"
+    "typescript": "^5.9.3"
   }
 }

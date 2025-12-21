@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { userSchema } from "../../schema/users.js";
+import { userSchema, roles } from "../../schema/users.js";
 import { db } from "../../db/db.js";
 import { eq } from "drizzle-orm";
 import * as bcrypt from 'bcrypt';
@@ -13,25 +13,36 @@ const app = new Hono();
 app.post("/login", login());
 
 app.post("setup", async (c) => {
-  const users = await db.select().from(userSchema)
-    .where(
-      eq(userSchema.role, "admin")
-    ).limit(1);
-  if (users.length) return c.text("404 Not Found");
+  const usersResult = await db.select()
+    .from(userSchema)
+    .limit(1);
+
+  if (usersResult.length) return error(c, "Initial setup already complete", 400);
 
   const { username, fullname, email, password } = await c.req.json();
   const hashedPassword = await bcrypt.hash(password, 10);
-  const a = await db
+
+  // Check for admin role
+  let [adminRole] = await db.select().from(roles).where(eq(roles.name, 'admin')).limit(1);
+  if (!adminRole) {
+    [adminRole] = await db.insert(roles).values({
+      name: 'admin',
+      description: 'Super administrator with all permissions'
+    }).returning();
+  }
+
+  const [newUser] = await db
     .insert(userSchema)
     .values({
       username,
       fullname,
       email,
       password: hashedPassword,
-      role: 'admin'
-    });
-  console.log(a)
-  return error(c, "404 not found", 404)
+      roleId: adminRole.id
+    })
+    .returning();
+
+  return c.json({ message: "Admin user created successfully", user: newUser });
 });
 
 app.get("/me", isAdmin, async (c) => {

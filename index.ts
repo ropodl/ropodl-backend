@@ -14,7 +14,7 @@ app.use(logger());
 app.use(cors());
 app.use(csrf({ origin: 'http://localhost:3000' }))
 
-app.use('/media/*', serveStatic({ root: './media/' }));
+app.use('/media/*', serveStatic({ root: './' }));
 
 app.route('/api/v1/', routes);
 
