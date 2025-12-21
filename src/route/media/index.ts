@@ -1,18 +1,54 @@
-import { Hono } from "hono";
+import { Hono } from 'hono';
+import { writeFile } from "node:fs/promises";
+import { join } from "node:path";
+import { cwd } from "node:process";
+import { randomUUID } from "node:crypto";
 
-const app = new Hono()
+import { db } from "../../db/db.js";
+import { mediaSchema } from "../../schema/media.js";
+
+const app = new Hono();
 
 app.get('/', async (c) => {
+  const allMedia = await db.select().from(mediaSchema);
+  return c.json(allMedia);
+});
 
-    let a = []
+const fileUrl = () => {
+  // if(process.env)
+  console.log(process.env)
+  console.log(import.meta)
+  return process.env.APP_URL;
+}
 
-    for (let i = 0; i < 10; i++) {
-        a.push({
-            src: "https://images.unsplash.com/photo-1761839257789-20147513121a?q=10&w=1469&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDF8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-        })
-    }
+app.post('/create', async (c) => {
+  const body = await c.req.parseBody();
+  const file = body['file'];
 
-    return c.json(a)
-})
+  if (file && typeof file === 'object' && 'arrayBuffer' in file) {
+    const fileContent = await file.arrayBuffer();
+    const buffer = Buffer.from(fileContent);
 
-export default app
+    const fileName = `${randomUUID()}-${file.name}`;
+    const uploadDir = join(cwd(), 'media');
+    const filePath = join(uploadDir, fileName);
+
+    await writeFile(filePath, buffer);
+
+    const [newMedia] = await db.insert(mediaSchema).values({
+      filename: fileName,
+      mimeType: file?.type,
+      // fileUrl: `${process.env.APP_URL}/media/${fileName}`, // Assuming served statically
+      fileUrl: <string>fileUrl(),
+      sizeBytes: buffer.byteLength,
+      uploadedBy: 'admin', // TODO: Get from auth context
+      altText: file.name,
+    }).returning();
+
+    return c.json(newMedia);
+  }
+
+  return c.json({ error: 'No file uploaded' }, 400);
+});
+
+export default app;

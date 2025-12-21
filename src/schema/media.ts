@@ -10,6 +10,7 @@ export const mediaSchema = pgTable('media', {
   id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
   filename: varchar('filename', { length: 255 }).notNull(),
   mimeType: varchar('mime_type', { length: 100 }).notNull(),
+  fileUrl: text('file_url').notNull(),
   sizeBytes: integer('size_bytes').notNull(),
   altText: text('alt_text'),
   uploadedBy: text('uploaded_by'),

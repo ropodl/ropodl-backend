@@ -1,21 +1,22 @@
-import { serve } from "@hono/node-server";
-import { Hono } from "hono";
-import { logger } from "hono/logger";
-import { cors } from "hono/cors";
-import { csrf } from "hono/csrf";
-import { serveStatic } from "@hono/node-server/serve-static";
-import "dotenv/config";
+import { serve } from '@hono/node-server';
+import { Hono } from 'hono';
+import { logger } from 'hono/logger';
+import { cors } from 'hono/cors';
+import { csrf } from 'hono/csrf'
 
-import routes from "./src/route/index.js";
+import { serveStatic } from '@hono/node-server/serve-static';
+import 'dotenv/config';
+
+import routes from './src/route/index.js';
 
 const app = new Hono();
 app.use(logger());
 app.use(cors());
-app.use(csrf());
+app.use(csrf({ origin: 'http://localhost:3000' }))
 
-app.use("/media/*", serveStatic({ root: "./media/" }));
+app.use('/media/*', serveStatic({ root: './media/' }));
 
-app.route("/api/v1/", routes);
+app.route('/api/v1/', routes);
 
 serve(
   {
