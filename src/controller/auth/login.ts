@@ -55,3 +55,36 @@ export const login = () => async (c: Context) => {
         token
     });
 }
+
+export const setup = () => async (c: Context) => {
+    const usersResult = await db.select()
+        .from(userSchema)
+        .limit(1);
+
+    if (usersResult.length) return error(c, "Initial setup already complete", 400);
+
+    const { username, fullname, email, password } = await c.req.json();
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Check for admin role
+    let [adminRole] = await db.select().from(roles).where(eq(roles.name, 'admin')).limit(1);
+    if (!adminRole) {
+        [adminRole] = await db.insert(roles).values({
+            name: 'admin',
+            description: 'Super administrator with all permissions'
+        }).returning();
+    }
+
+    const [newUser] = await db
+        .insert(userSchema)
+        .values({
+            username,
+            fullname,
+            email,
+            password: hashedPassword,
+            roleId: adminRole.id
+        })
+        .returning();
+
+    return c.json({ message: "Admin user created successfully", user: newUser });
+}

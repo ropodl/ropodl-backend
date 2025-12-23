@@ -24,7 +24,7 @@ const app = new Hono<{
   }
 }>();
 
-app.get('/', async (c) => {
+app.get('/', isAdmin, async (c) => {
   const search = c.req.query('search');
 
   let query = db.select().from(mediaSchema).orderBy(desc(mediaSchema.createdAt));
@@ -44,7 +44,7 @@ app.get('/', async (c) => {
   return c.json(allMedia);
 });
 
-app.get('/:id', async (c) => {
+app.get('/:id', isAdmin, async (c) => {
   const id = c.req.param('id')
   const media = await db.select().from(mediaSchema).where(eq(mediaSchema.id, Number(id))).limit(1);
 
