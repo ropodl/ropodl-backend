@@ -14,6 +14,10 @@ app.use(logger());
 app.use(cors());
 app.use(csrf({ origin: 'http://localhost:3000' }))
 
+app.get("/", async (c) => {
+  return c.json({ message: "Hello World" })
+})
+
 app.use('/media/*', serveStatic({ root: './' }));
 
 app.route('/api/v1/', routes);
