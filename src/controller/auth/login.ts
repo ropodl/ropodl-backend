@@ -86,5 +86,15 @@ export const setup = () => async (c: Context) => {
         })
         .returning();
 
+    interface user {
+        fullname: string;
+        username: string;
+        email: string;
+        roleId: number
+        password?: string;
+    }
+
+    delete (newUser as user).password
+
     return c.json({ message: "Admin user created successfully", user: newUser });
 }

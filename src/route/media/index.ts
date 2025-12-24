@@ -27,7 +27,7 @@ const app = new Hono<{
 app.get('/', isAdmin, async (c) => {
   const search = c.req.query('search');
 
-  let query = db.select().from(mediaSchema).orderBy(desc(mediaSchema.createdAt));
+  let query = await db.select().from(mediaSchema).orderBy(desc(mediaSchema.createdAt));
 
   if (search) {
     // @ts-ignore - drizzle types can be tricky with like and nulls but it works
