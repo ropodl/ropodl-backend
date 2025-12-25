@@ -9,6 +9,7 @@ export const blogTagSchema = pgTable("blog_tags",{
         .defaultNow()
         .notNull(),
       updatedAt: timestamp("updated_at", { withTimezone: true })
+        .$onUpdate(() => new Date())
         .defaultNow()
         .notNull(),
 })

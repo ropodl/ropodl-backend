@@ -1,4 +1,4 @@
-import { integer, pgTable, primaryKey, timestamp, varchar, uniqueIndex } from "drizzle-orm/pg-core";
+import { integer, pgTable, primaryKey, timestamp, varchar } from "drizzle-orm/pg-core";
 
 export const permissions = pgTable("permissions", {
   id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
@@ -31,7 +31,7 @@ export const userSchema = pgTable("users", {
     .defaultNow()
     .notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true })
-    .$onUpdate(() => new Date())
-    .defaultNow()
-    .notNull(),
+        .$onUpdate(() => new Date())
+        .defaultNow()
+        .notNull(),
 });
