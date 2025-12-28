@@ -15,7 +15,6 @@ export const all = () => async (c: Context) => {
         title: blogSchema.title,
         createdAt: blogSchema.createdAt,
         status: blogSchema.status
-        // Avoid selecting huge 'content' fields here
       })
       .from(blogSchema)
       .limit(limit)
