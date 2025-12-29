@@ -14,8 +14,7 @@ export const all = () => async (c: Context) => {
         id: blogSchema.id,
         title: blogSchema.title,
         createdAt: blogSchema.createdAt,
-        status: blogSchema.status,
-        // Avoid selecting huge 'content' fields here
+        status: blogSchema.status
       })
       .from(blogSchema)
       .limit(limit)
@@ -34,5 +33,92 @@ export const all = () => async (c: Context) => {
       offset,
     },
     data: posts,
+  });
+};
+
+export const getOne = () => async (c: Context) => {
+  const slug = c.req.param("slug");
+
+  const post = await db.query.blogSchema.findFirst({
+    where: (blogs, { eq }) => eq(blogs.slug, slug),
+  });
+
+  if (!post) {
+    return c.json({ success: false, message: "Blog not found" }, 404);
+  }
+
+  return c.json({
+    success: true,
+    data: post,
+  });
+};
+
+export const create = () => async (c: Context) => {
+  const body = await c.req.json();
+
+  try {
+    const [newPost] = await db.insert(blogSchema).values({
+      title: body.title,
+      slug: body.slug,
+      content: body.content,
+      excerpt: body.excerpt,
+      featured: body.featured_image_id, // Assuming the ID is passed
+      status: body.status,
+    }).returning();
+
+    return c.json({
+      success: true,
+      data: newPost,
+    }, 201);
+  } catch (error: any) {
+    return c.json({ success: false, message: error.message }, 400);
+  }
+};
+
+export const update = () => async (c: Context) => {
+  const slug = c.req.param("slug");
+  const body = await c.req.json();
+
+  try {
+    const [updatedPost] = await db.update(blogSchema)
+      .set({
+        title: body.title,
+        slug: body.slug,
+        content: body.content,
+        excerpt: body.excerpt,
+        featured: body.featured_image_id,
+        status: body.status,
+        updatedAt: new Date(),
+      })
+      .where((blogs) => ({ eq: [blogs.slug, slug] }))
+      .returning();
+
+    if (!updatedPost) {
+      return c.json({ success: false, message: "Blog not found" }, 404);
+    }
+
+    return c.json({
+      success: true,
+      data: updatedPost,
+    });
+  } catch (error: any) {
+    return c.json({ success: false, message: error.message }, 400);
+  }
+};
+
+export const remove = () => async (c: Context) => {
+  const slug = c.req.param("slug");
+
+  const [deletedPost] = await db.delete(blogSchema)
+    .where((blogs) => ({ eq: [blogs.slug, slug] }))
+    .returning();
+
+  if (!deletedPost) {
+    return c.json({ success: false, message: "Blog not found" }, 404);
+  }
+
+  return c.json({
+    success: true,
+    message: "Blog deleted successfully",
   });
 };
