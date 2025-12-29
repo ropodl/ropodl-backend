@@ -1,17 +1,21 @@
 import { Hono } from 'hono';
-import { writeFile, mkdir, unlink } from "node:fs/promises";
-import { join, dirname } from "node:path";
-import { cwd } from "node:process";
-import { randomUUID } from "node:crypto";
-import { existsSync } from "node:fs";
+import { writeFile, mkdir, unlink } from 'node:fs/promises';
+import { join, dirname } from 'node:path';
+import { cwd } from 'node:process';
+import { randomUUID } from 'node:crypto';
+import { existsSync } from 'node:fs';
 import sharp from 'sharp';
 
-import { db } from "../../db/db.js";
-import { mediaSchema } from "../../schema/media.js";
-import { isAdmin, hasPermission, authenticate } from '../../middleware/admin.js';
+import { db } from '../../db/db.js';
+import { mediaSchema } from '../../schema/media.js';
+import {
+  isAdmin,
+  hasPermission,
+  authenticate,
+} from '../../middleware/admin.js';
 import { eq, like, or, desc } from 'drizzle-orm';
 import { processImage } from '../../utils/image-processor.js';
-import { error } from "../../utils/error.js";
+import { error } from '../../utils/error.js';
 
 const app = new Hono<{
   Variables: {
@@ -20,14 +24,17 @@ const app = new Hono<{
       username: string;
       email: string;
       role: string;
-    }
-  }
+    };
+  };
 }>();
 
 app.get('/', isAdmin, async (c) => {
   const search = c.req.query('search');
 
-  let query = await db.select().from(mediaSchema).orderBy(desc(mediaSchema.createdAt));
+  let query = await db
+    .select()
+    .from(mediaSchema)
+    .orderBy(desc(mediaSchema.createdAt));
 
   if (search) {
     // @ts-ignore - drizzle types can be tricky with like and nulls but it works
@@ -45,8 +52,12 @@ app.get('/', isAdmin, async (c) => {
 });
 
 app.get('/:id', isAdmin, async (c) => {
-  const id = c.req.param('id')
-  const media = await db.select().from(mediaSchema).where(eq(mediaSchema.id, Number(id))).limit(1);
+  const id = c.req.param('id');
+  const media = await db
+    .select()
+    .from(mediaSchema)
+    .where(eq(mediaSchema.id, Number(id)))
+    .limit(1);
 
   if (!media.length) return error(c, 'Media not found', 404);
 
@@ -57,7 +68,8 @@ app.patch('/:id', authenticate, hasPermission('media.edit'), async (c) => {
   const id = Number(c.req.param('id'));
   const { altText, description } = await c.req.json();
 
-  const [updated] = await db.update(mediaSchema)
+  const [updated] = await db
+    .update(mediaSchema)
     .set({ altText, description })
     .where(eq(mediaSchema.id, id))
     .returning();
@@ -70,7 +82,11 @@ app.patch('/:id', authenticate, hasPermission('media.edit'), async (c) => {
 app.delete('/:id', authenticate, hasPermission('media.delete'), async (c) => {
   const id = Number(c.req.param('id'));
 
-  const [media] = await db.select().from(mediaSchema).where(eq(mediaSchema.id, id)).limit(1);
+  const [media] = await db
+    .select()
+    .from(mediaSchema)
+    .where(eq(mediaSchema.id, id))
+    .limit(1);
   if (!media) return error(c, 'Media not found', 404);
 
   // Delete physical files
@@ -105,9 +121,14 @@ app.post('/create', authenticate, hasPermission('media.create'), async (c) => {
 
   if (file && typeof file === 'object' && 'arrayBuffer' in file) {
     const allowedMimeTypes = [
-      'image/jpeg', 'image/png', 'image/gif', 'image/webp',
-      'application/pdf', 'text/plain', 'application/msword',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      'image/jpeg',
+      'image/png',
+      'image/gif',
+      'image/webp',
+      'application/pdf',
+      'text/plain',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     ];
 
     if (!allowedMimeTypes.includes(file.type)) {
@@ -129,7 +150,9 @@ app.post('/create', authenticate, hasPermission('media.create'), async (c) => {
       await mkdir(uploadDir, { recursive: true });
     }
 
-    const fileExtension = file.name.includes('.') ? file.name.substring(file.name.lastIndexOf('.')) : '';
+    const fileExtension = file.name.includes('.')
+      ? file.name.substring(file.name.lastIndexOf('.'))
+      : '';
     const fileName = `${randomUUID()}${fileExtension.replace(/\s+/g, '')}`;
     const filePath = join(uploadDir, fileName);
 
@@ -142,7 +165,7 @@ app.post('/create', authenticate, hasPermission('media.create'), async (c) => {
         const imageInfo = await sharp(buffer).metadata();
         metadata = {
           dimensions: { width: imageInfo.width, height: imageInfo.height },
-          variants
+          variants,
         };
       } catch (err) {
         console.error('Image processing failed:', err);
@@ -150,19 +173,23 @@ app.post('/create', authenticate, hasPermission('media.create'), async (c) => {
     }
 
     const url = new URL(c.req.url);
-    const baseUrl = process.env.NODE_ENV === 'production' && process.env.APP_URL
-      ? process.env.APP_URL
-      : url.origin;
+    const baseUrl =
+      process.env.NODE_ENV === 'production' && process.env.APP_URL
+        ? process.env.APP_URL
+        : url.origin;
 
-    const [newMedia] = await db.insert(mediaSchema).values({
-      filename: fileName,
-      mimeType: file?.type,
-      fileUrl: `${baseUrl}/${relativeDir}/${fileName}`,
-      sizeBytes: buffer.byteLength,
-      uploadedBy: user?.id,
-      altText: file.name,
-      metadata
-    }).returning();
+    const [newMedia] = await db
+      .insert(mediaSchema)
+      .values({
+        filename: fileName,
+        mimeType: file?.type,
+        fileUrl: `${baseUrl}/${relativeDir}/${fileName}`,
+        sizeBytes: buffer.byteLength,
+        uploadedBy: user?.id,
+        altText: file.name,
+        metadata,
+      })
+      .returning();
 
     return c.json(newMedia);
   }

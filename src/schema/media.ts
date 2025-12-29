@@ -6,7 +6,7 @@ import {
   varchar,
   jsonb,
 } from 'drizzle-orm/pg-core';
-import { userSchema } from "./users.ts";
+import { userSchema } from './users.ts';
 
 export const mediaSchema = pgTable('media', {
   id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
@@ -15,7 +15,9 @@ export const mediaSchema = pgTable('media', {
   fileUrl: text('file_url').notNull(),
   sizeBytes: integer('size_bytes').notNull(),
   altText: text('alt_text'),
-  uploadedBy: integer('uploaded_by').references(() => userSchema.id).notNull(),
+  uploadedBy: integer('uploaded_by')
+    .references(() => userSchema.id)
+    .notNull(),
   metadata: jsonb('metadata').$type<{
     dimensions?: { width: number; height: number };
     variants?: {
@@ -28,8 +30,8 @@ export const mediaSchema = pgTable('media', {
   createdAt: timestamp('created_at', { withTimezone: true })
     .defaultNow()
     .notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true })
-        .$onUpdate(() => new Date())
-        .defaultNow()
-        .notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .$onUpdate(() => new Date())
+    .defaultNow()
+    .notNull(),
 });
