@@ -6,16 +6,16 @@ import { randomUUID } from 'node:crypto';
 import { existsSync } from 'node:fs';
 import sharp from 'sharp';
 
-import { db } from '../../db/db.js';
-import { mediaSchema } from '../../schema/media.js';
+import { db } from '../../../db/db.js';
+import { mediaSchema } from '../../../schema/media.ts';
 import {
   isAdmin,
   hasPermission,
   authenticate,
-} from '../../middleware/admin.js';
+} from '../../../middleware/admin.js';
 import { eq, like, or, desc } from 'drizzle-orm';
-import { processImage } from '../../utils/image-processor.js';
-import { error } from '../../utils/error.js';
+import { processImage } from '../../../utils/image-processor.js';
+import { error } from '../../../utils/error.js';
 
 const app = new Hono<{
   Variables: {
@@ -47,7 +47,7 @@ app.get('/', isAdmin, async (c) => {
     );
   }
 
-  const allMedia = await query;
+  const allMedia = query;
   return c.json(allMedia);
 });
 

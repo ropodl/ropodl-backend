@@ -3,7 +3,7 @@ import { Hono } from 'hono';
 import { logger } from 'hono/logger';
 import { cors } from 'hono/cors';
 import { csrf } from 'hono/csrf';
-import { appendTrailingSlash } from 'hono/trailing-slash';
+import { trimTrailingSlash } from 'hono/trailing-slash'
 
 import { serveStatic } from '@hono/node-server/serve-static';
 import 'dotenv/config';
@@ -14,7 +14,7 @@ const app = new Hono();
 app.use(logger());
 app.use(cors());
 app.use(csrf({ origin: ['http://localhost:3000', 'https://ropodl.com'] }));
-app.use(appendTrailingSlash());
+app.use(trimTrailingSlash());
 
 app.get('/', async (c) => {
   return c.json({ message: 'Hello World' });

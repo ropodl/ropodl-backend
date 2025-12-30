@@ -1,15 +1,12 @@
 import { Hono } from 'hono';
 import login from './auth/login.js';
-import media from './media/index.js';
-import rbac from './rbac/index.js';
-import blog from './blog/index.js';
+import adminRoutes from "./admin/index.ts"
+import userRoutes from "./user/index.ts"
 
 const app = new Hono();
 
-app.route('/auth/', login);
-app.route('/media/', media);
-app.route('/rbac/', rbac);
-
-app.route('/blog/', blog);
+app.route('/auth', login);
+app.route('/', userRoutes);
+app.route("/admin", adminRoutes);
 
 export default app;
