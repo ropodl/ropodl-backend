@@ -18,7 +18,7 @@ app.get('/', async(c) => {
             status: blogSchema.status
           })
           .from(blogSchema)
-          .where(eq(status,"published"))
+          .where(eq(blogSchema.status,"published"))
           .limit(limit)
           .offset(offset),
         db.select({ total: count(blogSchema.id) }).from(blogSchema),
