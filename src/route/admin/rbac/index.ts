@@ -1,9 +1,9 @@
 import { Hono } from 'hono';
-import { db } from '../../db/db.js';
-import { roles, permissions, rolePermissions } from '../../schema/users.js';
+import { db } from '../../../db/db.js';
+import { roles, permissions, rolePermissions } from '../../../schema/users.js';
 import { eq, inArray } from 'drizzle-orm';
-import { isAdmin, authenticate } from '../../middleware/admin.js';
-import { error } from '../../utils/error.js';
+import { isAdmin, authenticate } from '../../../middleware/admin.js';
+import { error } from '../../../utils/error.js';
 
 const app = new Hono();
 
