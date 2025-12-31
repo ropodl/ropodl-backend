@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { all, getOne, create, update, remove } from "../../../controller/blog/index.ts";
+import { all, getOne, create, update, remove } from "../../../controller/admin/blog/index.ts";
 import { isAdmin } from "../../../middleware/admin.ts";
 
 const app = new Hono();
