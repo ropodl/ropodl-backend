@@ -18,11 +18,10 @@ export const blogSchema = pgTable('blogs', {
   id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
   title: varchar('blog_title', { length: 60 }).notNull().unique(),
   excerpt: varchar('blog_excerpt', { length: 200 }),
-  slug: varchar('blog_slug', { length: 120 }).notNull(),
+  slug: varchar('blog_slug', { length: 120 }).notNull().unique(),
   content: text('blog_content').notNull(),
   featured: integer('featured_image')
-    .references(() => mediaSchema.id)
-    .notNull(),
+    .references(() => mediaSchema.id).notNull(),
   status: status('blog_status').notNull(),
   createdAt: timestamp('created_at', { withTimezone: true })
     .defaultNow()

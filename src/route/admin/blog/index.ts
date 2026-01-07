@@ -5,9 +5,9 @@ import { isAdmin } from "../../../middleware/admin.ts";
 const app = new Hono();
 
 app.get("/", isAdmin, all());
-app.get("/:slug", isAdmin, getOne());
+app.get("/:id", isAdmin, getOne());
 app.post("/", isAdmin, create());
-app.patch("/:slug", isAdmin, update());
-app.delete("/:slug", isAdmin, remove());
+app.patch("/:id", isAdmin, update());
+app.delete("/:id", isAdmin, remove());
 
 export default app;
