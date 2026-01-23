@@ -1,5 +1,5 @@
-import { Hono } from "hono";
-import blog from "./blog.ts"
+import { Hono } from 'hono';
+import blog from './blog.ts';
 
 const app = new Hono();
 

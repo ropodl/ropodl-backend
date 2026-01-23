@@ -21,7 +21,8 @@ export const blogSchema = pgTable('blogs', {
   slug: varchar('blog_slug', { length: 120 }).notNull().unique(),
   content: text('blog_content').notNull(),
   featured: integer('featured_image')
-    .references(() => mediaSchema.id).notNull(),
+    .references(() => mediaSchema.id)
+    .notNull(),
   status: status('blog_status').notNull(),
   createdAt: timestamp('created_at', { withTimezone: true })
     .defaultNow()

@@ -1,22 +1,23 @@
 import { Hono } from 'hono';
-import { db } from '../../../db/db.js';
-import { roles, permissions, rolePermissions } from '../../../schema/users.js';
+import { db } from '../../../db/db.ts';
+import { roles, permissions, rolePermissions } from '../../../schema/users.ts';
 import { eq, inArray } from 'drizzle-orm';
-import { isAdmin, authenticate } from '../../../middleware/admin.js';
-import { error } from '../../../utils/error.js';
+import { isAdmin, authenticate, hasPermission } from '../../../middleware/admin.ts';
+import { error } from '../../../utils/error.ts';
 
 const app = new Hono();
 
 // All RBAC routes require admin access
-app.use('*', authenticate, isAdmin);
+// app.use('*', authenticate, isAdmin);
 
 // Roles
-app.get('/roles', async (c) => {
+app.get('/', async (c) => {
+  console.log("hi there")
   const allRoles = await db.select().from(roles);
   return c.json(allRoles);
 });
 
-app.post('/roles', async (c) => {
+app.post('/', async (c) => {
   const { name, description } = await c.req.json();
   const [newRole] = await db
     .insert(roles)
@@ -25,30 +26,15 @@ app.post('/roles', async (c) => {
   return c.json(newRole);
 });
 
-app.delete('/roles/:id', async (c) => {
+app.delete('/:id',hasPermission('delete.roles'), async (c) => {
   const id = Number(c.req.param('id'));
   await db.delete(rolePermissions).where(eq(rolePermissions.roleId, id));
   await db.delete(roles).where(eq(roles.id, id));
   return c.json({ message: 'Role deleted successfully' });
 });
 
-// Permissions
-app.get('/permissions', async (c) => {
-  const allPermissions = await db.select().from(permissions);
-  return c.json(allPermissions);
-});
-
-app.post('/permissions', async (c) => {
-  const { name, description } = await c.req.json();
-  const [newPermission] = await db
-    .insert(permissions)
-    .values({ name, description })
-    .returning();
-  return c.json(newPermission);
-});
-
 // Role Permissions
-app.get('/roles/:id/permissions', async (c) => {
+app.get('/:id/permissions', async (c) => {
   const id = Number(c.req.param('id'));
   const perms = await db
     .select({
@@ -66,7 +52,7 @@ app.get('/roles/:id/permissions', async (c) => {
   return c.json(perms);
 });
 
-app.post('/roles/:id/permissions', async (c) => {
+app.post('/:id/permissions', async (c) => {
   const id = Number(c.req.param('id'));
   const { permissionIds } = await c.req.json(); // Array of IDs
 

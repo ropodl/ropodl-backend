@@ -25,18 +25,6 @@ export const authenticate = async (c: Context, next: Next) => {
   }
 };
 
-export const hasPermission =
-  (permission: string) => async (c: Context, next: Next) => {
-    const user = c.get('user') as UserPayload;
-    if (!user) return error(c, 'Unauthorized', 401);
-
-    if (user.role === 'admin' || user.permissions?.includes(permission)) {
-      return next();
-    }
-
-    return error(c, 'Permission Denied', 403);
-  };
-
 export const isAdmin = async (c: Context, next: Next) => {
   const user = c.get('user') as UserPayload;
   if (user && user.role === 'admin') return next();
@@ -54,3 +42,17 @@ export const isAdmin = async (c: Context, next: Next) => {
 
   return error(c, 'Invalid Permission', 401);
 };
+
+export const hasPermission =
+  (permission: string) => async (c: Context, next: Next) => {
+    console.log("this is a test")
+    const user = c.get('user') as UserPayload;
+    if (!user) return error(c, 'Unauthorized', 401);
+
+    if (['admin','super admin'].includes(user.role) || user.permissions?.includes(permission)) {
+      return next();
+    }
+
+    return error(c, 'Permission Denied', 403);
+  };
+

@@ -3,7 +3,7 @@ import { Hono } from 'hono';
 import { logger } from 'hono/logger';
 import { cors } from 'hono/cors';
 import { csrf } from 'hono/csrf';
-import { trimTrailingSlash } from 'hono/trailing-slash'
+import { trimTrailingSlash } from 'hono/trailing-slash';
 
 import { serveStatic } from '@hono/node-server/serve-static';
 import 'dotenv/config';

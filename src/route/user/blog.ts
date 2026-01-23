@@ -1,8 +1,8 @@
-import { Hono } from "hono";
-import { db } from "../../db/db.ts"
-import { blogSchema } from "../../schema/blogs/index.ts";
-import { count, eq, and, lt, gt, desc, asc } from "drizzle-orm";
-import { mediaSchema } from "../../schema/media.ts";
+import { Hono } from 'hono';
+import { db } from '../../db/db.ts';
+import { blogSchema } from '../../schema/blogs/index.ts';
+import { count, eq, and, lt, gt, desc, asc } from 'drizzle-orm';
+import { mediaSchema } from '../../schema/media.ts';
 
 const app = new Hono();
 
@@ -23,7 +23,7 @@ app.get('/', async (c) => {
       })
       .from(blogSchema)
       .leftJoin(mediaSchema, eq(blogSchema.featured, mediaSchema.id))
-      .where(eq(blogSchema.status, "published"))
+      .where(eq(blogSchema.status, 'published'))
       .orderBy(desc(blogSchema.updatedAt))
       .limit(limit)
       .offset(offset),
@@ -44,61 +44,70 @@ app.get('/', async (c) => {
   });
 });
 
-app.get("/:slug", async (c) => {
+app.get('/:slug', async (c) => {
   const slug = c.req.param('slug');
 
-  const [post] = await db.select({
-    id: blogSchema.id,
-    title: blogSchema.title,
-    excerpt: blogSchema.excerpt,
-    content: blogSchema.content,
-    featured_image: mediaSchema,
-    created_at: blogSchema.createdAt
-  })
+  const [post] = await db
+    .select({
+      id: blogSchema.id,
+      title: blogSchema.title,
+      excerpt: blogSchema.excerpt,
+      content: blogSchema.content,
+      featured_image: mediaSchema,
+      created_at: blogSchema.createdAt,
+    })
     .from(blogSchema)
     .leftJoin(mediaSchema, eq(blogSchema.featured, mediaSchema.id))
     .where(eq(blogSchema.slug, slug))
-    .limit(1)
+    .limit(1);
 
   if (!post) {
-    return c.json({ success: false, message: "Post not found" }, 404);
+    return c.json({ success: false, message: 'Post not found' }, 404);
   }
 
   const [previous, next] = await Promise.all([
-    db.select({
-      title: blogSchema.title,
-      slug: blogSchema.slug,
-      featured_image: mediaSchema,
-    }).from(blogSchema)
-    .leftJoin(mediaSchema, eq(blogSchema.featured, mediaSchema.id))
-      .where(and(
-        eq(blogSchema.status, "published"),
-        lt(blogSchema.createdAt, post.created_at)
-      ))
+    db
+      .select({
+        title: blogSchema.title,
+        slug: blogSchema.slug,
+        featured_image: mediaSchema,
+      })
+      .from(blogSchema)
+      .leftJoin(mediaSchema, eq(blogSchema.featured, mediaSchema.id))
+      .where(
+        and(
+          eq(blogSchema.status, 'published'),
+          lt(blogSchema.createdAt, post.created_at)
+        )
+      )
       .orderBy(desc(blogSchema.createdAt))
       .limit(1)
-      .then(res => res[0] || null),
-    db.select({
-      title: blogSchema.title,
-      slug: blogSchema.slug,
-      featured_image: mediaSchema,
-    }).from(blogSchema)
-    .leftJoin(mediaSchema, eq(blogSchema.featured, mediaSchema.id))
-      .where(and(
-        eq(blogSchema.status, "published"),
-        gt(blogSchema.createdAt, post.created_at)
-      ))
+      .then((res) => res[0] || null),
+    db
+      .select({
+        title: blogSchema.title,
+        slug: blogSchema.slug,
+        featured_image: mediaSchema,
+      })
+      .from(blogSchema)
+      .leftJoin(mediaSchema, eq(blogSchema.featured, mediaSchema.id))
+      .where(
+        and(
+          eq(blogSchema.status, 'published'),
+          gt(blogSchema.createdAt, post.created_at)
+        )
+      )
       .orderBy(asc(blogSchema.createdAt))
       .limit(1)
-      .then(res => res[0] || null)
+      .then((res) => res[0] || null),
   ]);
 
   return c.json({
     success: true,
     data: post,
     previous,
-    next
-  })
-})
+    next,
+  });
+});
 
 export default app;
