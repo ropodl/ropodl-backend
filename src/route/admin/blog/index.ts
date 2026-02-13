@@ -6,14 +6,14 @@ import {
   update,
   remove,
 } from '../../../controller/admin/blog/index.ts';
-import { isAdmin } from '../../../middleware/admin.ts';
+import { authenticate } from '../../../middleware/admin.ts';
 
 const app = new Hono();
 
-app.get('/', isAdmin, all());
-app.get('/:id', isAdmin, getOne());
-app.post('/', isAdmin, create());
-app.patch('/:id', isAdmin, update());
-app.delete('/:id', isAdmin, remove());
+app.get('/', authenticate, all());
+app.get('/:id', authenticate, getOne());
+app.post('/', authenticate, create());
+app.patch('/:id', authenticate, update());
+app.delete('/:id', authenticate, remove());
 
 export default app;
