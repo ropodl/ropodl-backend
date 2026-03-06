@@ -8,7 +8,7 @@ import sharp from 'sharp';
 
 import { db } from '../../../db/db.js';
 import { mediaSchema } from '../../../schema/media.js';
-import { authenticate } from '../../../middleware/admin.js';
+import { authenticate, authorize } from '../../../middleware/admin.js';
 import { eq, like, or, desc } from 'drizzle-orm';
 import { processImage } from '../../../utils/image-processor.js';
 import { error } from '../../../utils/error.js';
@@ -23,7 +23,7 @@ const app = new Hono<{
   };
 }>();
 
-app.get('/', authenticate, async (c) => {
+app.get('/', authenticate, authorize('media.view'), async (c) => {
   const search = c.req.query('search');
 
   let query = await db
@@ -46,7 +46,7 @@ app.get('/', authenticate, async (c) => {
   return c.json(allMedia);
 });
 
-app.get('/:id', authenticate, async (c) => {
+app.get('/:id', authenticate, authorize('media.view'), async (c) => {
   const id = c.req.param('id');
   const media = await db
     .select()
@@ -59,7 +59,7 @@ app.get('/:id', authenticate, async (c) => {
   return c.json(media[0]);
 });
 
-app.patch('/:id', authenticate, async (c) => {
+app.patch('/:id', authenticate, authorize('media.update'), async (c) => {
   const id = Number(c.req.param('id'));
   const { altText, description } = await c.req.json();
 
@@ -74,7 +74,7 @@ app.patch('/:id', authenticate, async (c) => {
   return c.json(updated);
 });
 
-app.delete('/:id', authenticate, async (c) => {
+app.delete('/:id', authenticate, authorize('media.delete'), async (c) => {
   const id = Number(c.req.param('id'));
 
   const [media] = await db
@@ -108,7 +108,7 @@ app.delete('/:id', authenticate, async (c) => {
   return c.json({ message: 'Media deleted successfully' });
 });
 
-app.post('/create', authenticate, async (c) => {
+app.post('/create', authenticate, authorize('media.create'), async (c) => {
   const body = await c.req.parseBody();
   const file = body['file'];
 

@@ -5,13 +5,13 @@ import {
   updateType,
   deleteType,
 } from '../../../controller/admin/work-type/index.js';
-import { authenticate } from '../../../middleware/admin.js';
+import { authenticate, authorize } from '../../../middleware/admin.js';
 
 const app = new Hono();
 
-app.get('/', authenticate, getAllTypes());
-app.post('/', authenticate, createType());
-app.patch('/:id', authenticate, updateType());
-app.delete('/:id', authenticate, deleteType());
+app.get('/', authenticate, authorize('worktype.view'), getAllTypes());
+app.post('/', authenticate, authorize('worktype.create'), createType());
+app.patch('/:id', authenticate, authorize('worktype.update'), updateType());
+app.delete('/:id', authenticate, authorize('worktype.delete'), deleteType());
 
 export default app;

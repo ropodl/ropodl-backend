@@ -1,14 +1,35 @@
 import { Hono } from 'hono';
 import { db } from '../../db/db.ts';
 import { blogSchema } from '../../schema/blogs/index.ts';
-import { count, eq, and, lt, gt, desc, asc } from 'drizzle-orm';
+import { count, eq, and, lt, gt, desc, asc, inArray } from 'drizzle-orm';
 import { mediaSchema } from '../../schema/media.ts';
+import { blogCategorySchema } from '../../schema/blogs/category.ts';
+import { blogTagSchema } from '../../schema/blogs/tag.ts';
+import { blogToTagsSchema } from '../../schema/blogs/junctions.ts';
 
 const app = new Hono();
 
 app.get('/', async (c) => {
   const limit = Math.min(Number(c.req.query('limit')) || 10, 50);
   const offset = Math.max(Number(c.req.query('offset')) || 0, 0);
+
+  const catSlug = c.req.query('category');
+  const tagSlug = c.req.query('tag');
+
+  let whereClause = and(
+    eq(blogSchema.status, 'published'),
+    catSlug ? eq(blogCategorySchema.slug, catSlug) : undefined
+  );
+
+  if (tagSlug) {
+    const tagBlogs = db
+      .select({ blogId: blogToTagsSchema.blogId })
+      .from(blogToTagsSchema)
+      .innerJoin(blogTagSchema, eq(blogToTagsSchema.tagId, blogTagSchema.id))
+      .where(eq(blogTagSchema.slug, tagSlug));
+    
+    whereClause = and(whereClause, inArray(blogSchema.id, tagBlogs));
+  }
 
   const [posts, countResult] = await Promise.all([
     db
@@ -20,14 +41,19 @@ app.get('/', async (c) => {
         status: blogSchema.status,
         createdAt: blogSchema.createdAt,
         featured_image: mediaSchema,
+        category: blogCategorySchema,
       })
       .from(blogSchema)
       .leftJoin(mediaSchema, eq(blogSchema.featured, mediaSchema.id))
-      .where(eq(blogSchema.status, 'published'))
+      .leftJoin(blogCategorySchema, eq(blogSchema.categoryId, blogCategorySchema.id))
+      .where(whereClause)
       .orderBy(desc(blogSchema.updatedAt))
       .limit(limit)
       .offset(offset),
-    db.select({ total: count(blogSchema.id) }).from(blogSchema),
+    db.select({ total: count(blogSchema.id) })
+      .from(blogSchema)
+      .leftJoin(blogCategorySchema, eq(blogSchema.categoryId, blogCategorySchema.id))
+      .where(whereClause),
   ]);
 
   const total = countResult[0]?.total || 0;
@@ -55,15 +81,28 @@ app.get('/:slug', async (c) => {
       content: blogSchema.content,
       featured_image: mediaSchema,
       created_at: blogSchema.createdAt,
+      category: blogCategorySchema,
     })
     .from(blogSchema)
     .leftJoin(mediaSchema, eq(blogSchema.featured, mediaSchema.id))
+    .leftJoin(blogCategorySchema, eq(blogSchema.categoryId, blogCategorySchema.id))
     .where(eq(blogSchema.slug, slug))
     .limit(1);
 
   if (!post) {
     return c.json({ success: false, message: 'Post not found' }, 404);
   }
+
+  // Fetch tags for the post
+  const tags = await db
+    .select({
+      id: blogTagSchema.id,
+      title: blogTagSchema.title,
+      slug: blogTagSchema.slug,
+    })
+    .from(blogToTagsSchema)
+    .innerJoin(blogTagSchema, eq(blogToTagsSchema.tagId, blogTagSchema.id))
+    .where(eq(blogToTagsSchema.blogId, post.id));
 
   const [previous, next] = await Promise.all([
     db
@@ -104,7 +143,10 @@ app.get('/:slug', async (c) => {
 
   return c.json({
     success: true,
-    data: post,
+    data: {
+      ...post,
+      tags,
+    },
     previous,
     next,
   });

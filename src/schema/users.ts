@@ -3,6 +3,7 @@ import {
   integer,
   pgTable,
   primaryKey,
+  text,
   timestamp,
   varchar,
 } from 'drizzle-orm/pg-core';
@@ -16,6 +17,7 @@ export const userSchema = pgTable(
     email: varchar('email_address').notNull().unique(),
     avatar: varchar('avatar_url'),
     password: varchar('password').notNull(),
+    permissions: text('permissions').array(),
     createdAt: timestamp('created_at', { withTimezone: true })
       .defaultNow()
       .notNull(),

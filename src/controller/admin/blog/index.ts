@@ -2,7 +2,11 @@ import type { Context } from 'hono';
 import { db } from '../../../db/db.ts';
 import { blogSchema } from '../../../schema/blogs/index.ts';
 import { mediaSchema } from '../../../schema/media.ts';
-import { count, eq } from 'drizzle-orm';
+import { blogCategorySchema } from '../../../schema/blogs/category.ts';
+import { blogTagSchema } from '../../../schema/blogs/tag.ts';
+import { blogToTagsSchema } from '../../../schema/blogs/junctions.ts';
+import { count, eq, inArray } from 'drizzle-orm';
+import { logAction } from '../../../utils/audit.ts';
 
 export const all = () => async (c: Context) => {
   const limit = Math.min(Number(c.req.query('limit')) || 10, 50);
@@ -39,10 +43,13 @@ export const getOne = () => async (c: Context) => {
       excerpt: blogSchema.excerpt,
       status: blogSchema.status,
       featured: blogSchema.featured,
+      categoryId: blogSchema.categoryId,
       featured_image_url: mediaSchema.fileUrl,
+      category_name: blogCategorySchema.title,
     })
     .from(blogSchema)
     .leftJoin(mediaSchema, eq(blogSchema.featured, mediaSchema.id))
+    .leftJoin(blogCategorySchema, eq(blogSchema.categoryId, blogCategorySchema.id))
     .where(eq(blogSchema.id, id))
     .limit(1);
 
@@ -50,97 +57,123 @@ export const getOne = () => async (c: Context) => {
     return c.json({ success: false, message: 'Blog not found' }, 404);
   }
 
+  // Fetch tags
+  const tags = await db
+    .select({
+      id: blogTagSchema.id,
+      title: blogTagSchema.title,
+    })
+    .from(blogToTagsSchema)
+    .innerJoin(blogTagSchema, eq(blogToTagsSchema.tagId, blogTagSchema.id))
+    .where(eq(blogToTagsSchema.blogId, id));
+
   return c.json({
     success: true,
-    data: post,
+    data: {
+      ...post,
+      tags,
+    },
   });
 };
 
 export const create = () => async (c: Context) => {
   const body = await c.req.json();
-  console.log(body);
+  const { tagIds, ...data } = body;
 
   try {
-    const [newPost] = await db
-      .insert(blogSchema)
-      .values({
-        title: body.title?.trim(),
-        excerpt: body.excerpt?.trim(),
-        slug: body.slug?.trim(),
-        content: body.content?.trim(),
-        featured: body.featured_image_id, // Assuming the ID is passed
-        status: body.status,
-      })
-      .returning();
+    return await db.transaction(async (tx) => {
+      const [newPost] = await tx
+        .insert(blogSchema)
+        .values({
+          title: data.title?.trim(),
+          excerpt: data.excerpt?.trim(),
+          slug: data.slug?.trim(),
+          content: data.content?.trim(),
+          featured: data.featured_image_id,
+          categoryId: data.categoryId,
+          status: data.status,
+        })
+        .returning();
 
-    return c.json(
-      {
-        success: true,
-        data: newPost,
-      },
-      201
-    );
+      if (tagIds && tagIds.length > 0) {
+        await tx.insert(blogToTagsSchema).values(
+          tagIds.map((tagId: number) => ({
+            blogId: newPost.id,
+            tagId,
+          }))
+        );
+      }
+
+      await logAction({
+        userId: (c.get('user') as any)?.id,
+        action: 'CREATE_BLOG',
+        entity: 'blog',
+        entityId: newPost.id,
+        ipAddress: c.req.header('x-forwarded-for') || c.req.header('remote-addr'),
+      });
+
+      return c.json({ success: true, data: newPost }, 201);
+    });
   } catch (error: any) {
     console.error('Create Blog Error:', error);
     if (error.code === '23505') {
-      return c.json(
-        {
-          success: false,
-          message: 'A blog with this title or slug already exists.',
-        },
-        409
-      );
+      return c.json({ success: false, message: 'Existing title or slug' }, 409);
     }
-    if (error.code === '23503') {
-      return c.json(
-        { success: false, message: 'Invalid featured image ID.' },
-        400
-      );
-    }
-    return c.json(
-      { success: false, message: error.message || 'Internal Server Error' },
-      400
-    );
+    return c.json({ success: false, message: error.message }, 400);
   }
 };
 
 export const update = () => async (c: Context) => {
   const id = Number(c.req.param('id'));
   const body = await c.req.json();
+  const { tagIds, ...data } = body;
 
   try {
-    const [updatedPost] = await db
-      .update(blogSchema)
-      .set({
-        title: body.title?.trim(),
-        content: body.content?.trim(),
-        excerpt: body.excerpt?.trim(),
-        featured: body.featured_image_id,
-        status: body.status,
-        slug: body.slug?.trim(),
-        updatedAt: new Date(),
-      })
-      .where(eq(blogSchema.id, id))
-      .returning();
+    return await db.transaction(async (tx) => {
+      const [updatedPost] = await tx
+        .update(blogSchema)
+        .set({
+          title: data.title?.trim(),
+          content: data.content?.trim(),
+          excerpt: data.excerpt?.trim(),
+          featured: data.featured_image_id,
+          categoryId: data.categoryId,
+          status: data.status,
+          slug: data.slug?.trim(),
+          updatedAt: new Date(),
+        })
+        .where(eq(blogSchema.id, id))
+        .returning();
 
-    if (!updatedPost) {
-      return c.json({ success: false, message: 'Blog not found' }, 404);
-    }
+      if (!updatedPost) {
+        return c.json({ success: false, message: 'Blog not found' }, 404);
+      }
 
-    return c.json({
-      success: true,
-      data: updatedPost,
+      // Update tags: delete old ones and insert new ones
+      await tx.delete(blogToTagsSchema).where(eq(blogToTagsSchema.blogId, id));
+      if (tagIds && tagIds.length > 0) {
+        await tx.insert(blogToTagsSchema).values(
+          tagIds.map((tagId: number) => ({
+            blogId: id,
+            tagId,
+          }))
+        );
+      }
+
+      await logAction({
+        userId: (c.get('user') as any)?.id,
+        action: 'UPDATE_BLOG',
+        entity: 'blog',
+        entityId: id,
+        ipAddress: c.req.header('x-forwarded-for') || c.req.header('remote-addr'),
+      });
+
+      return c.json({ success: true, data: updatedPost });
     });
   } catch (error: any) {
     console.error('Update Blog Error:', error);
     if (error.code === '23505') {
-      return c.json(
-        {
-          success: false,
-          message: 'A blog with this title or slug already exists.',
-        },
-        409
-      );
+      return c.json({ success: false, message: 'Existing title or slug' }, 409);
     }
     return c.json({ success: false, message: error.message }, 400);
   }
@@ -157,6 +190,14 @@ export const remove = () => async (c: Context) => {
   if (!deletedPost) {
     return c.json({ success: false, message: 'Blog not found' }, 404);
   }
+
+  await logAction({
+    userId: (c.get('user') as any)?.id,
+    action: 'DELETE_BLOG',
+    entity: 'blog',
+    entityId: id,
+    ipAddress: c.req.header('x-forwarded-for') || c.req.header('remote-addr'),
+  });
 
   return c.json({
     success: true,

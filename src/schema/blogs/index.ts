@@ -7,6 +7,7 @@ import {
   varchar,
 } from 'drizzle-orm/pg-core';
 import { mediaSchema } from '../media.ts';
+import { blogCategorySchema } from './category.ts';
 
 export const status = pgEnum('blog_status', [
   'draft',
@@ -23,6 +24,7 @@ export const blogSchema = pgTable('blogs', {
   featured: integer('featured_image')
     .references(() => mediaSchema.id)
     .notNull(),
+  categoryId: integer('category_id').references(() => blogCategorySchema.id),
   status: status('blog_status').notNull(),
   createdAt: timestamp('created_at', { withTimezone: true })
     .defaultNow()

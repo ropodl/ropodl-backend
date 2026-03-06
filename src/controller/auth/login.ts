@@ -31,6 +31,7 @@ export const login = () => async (c: Context) => {
     fullname: user.fullname,
     email: user.email,
     avatar: user.avatar,
+    permissions: user.permissions || [],
     exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24, // Token expires in 1 day
   };
 
