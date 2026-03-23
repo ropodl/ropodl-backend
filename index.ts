@@ -27,7 +27,7 @@ app.get('/', async (c) => {
   return c.json({ message: 'Hello World' });
 });
 
-app.use('/media/*', serveStatic({ root: './' }));
+app.use('/media/*', serveStatic({ root: './media/' }));
 
 app.route('/api/v1/', routes);
 
