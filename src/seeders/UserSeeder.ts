@@ -3,6 +3,7 @@ import { eq } from 'drizzle-orm';
 import { Seeder } from './Seeder.ts';
 import bcrypt from 'bcrypt';
 import { userSchema } from '../schema/users.ts';
+import { ADMIN_PERMISSIONS } from '../constants/permissions.ts';
 
 export class UserSeeder extends Seeder {
   async run(db: NodePgDatabase<Record<string, never>>): Promise<void> {
@@ -19,14 +20,7 @@ export class UserSeeder extends Seeder {
         email: 'admin@admin.com',
         avatar: '',
         password: adminPassword,
-        permissions: [
-          'blog.view', 'blog.create', 'blog.update', 'blog.delete',
-          'blog.category.view', 'blog.category.create', 'blog.category.update', 'blog.category.delete',
-          'blog.tag.view', 'blog.tag.create', 'blog.tag.update', 'blog.tag.delete',
-          'portfolio.view', 'portfolio.create', 'portfolio.update', 'portfolio.delete',
-          'portfolio.type.view', 'portfolio.type.create', 'portfolio.type.update', 'portfolio.type.delete',
-          'media.view', 'media.create', 'media.update', 'media.delete'
-        ],
+        permissions: [...ADMIN_PERMISSIONS],
       },
       {
         username: 'johndoe',
@@ -34,6 +28,7 @@ export class UserSeeder extends Seeder {
         email: 'john@example.com',
         avatar: '',
         password: userPassword,
+        permissions: [],
       },
     ];
 

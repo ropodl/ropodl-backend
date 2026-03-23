@@ -12,6 +12,7 @@ import { authenticate, authorize } from '../../../middleware/admin.js';
 import { eq, like, or, desc } from 'drizzle-orm';
 import { processImage } from '../../../utils/image-processor.js';
 import { error } from '../../../utils/error.js';
+import { invalidateCache } from '../../../utils/cache.js';
 
 const app = new Hono<{
   Variables: {
@@ -104,6 +105,7 @@ app.delete('/:id', authenticate, authorize('media.delete'), async (c) => {
   }
 
   await db.delete(mediaSchema).where(eq(mediaSchema.id, id));
+  invalidateCache('admin:stats:dashboard');
 
   return c.json({ message: 'Media deleted successfully' });
 });
@@ -185,6 +187,8 @@ app.post('/create', authenticate, authorize('media.create'), async (c) => {
         metadata,
       })
       .returning();
+
+    invalidateCache('admin:stats:dashboard');
 
     return c.json(newMedia);
   }

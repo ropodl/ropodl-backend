@@ -7,6 +7,7 @@ import { blogTagSchema } from '../../../schema/blogs/tag.ts';
 import { blogToTagsSchema } from '../../../schema/blogs/junctions.ts';
 import { count, eq, inArray } from 'drizzle-orm';
 import { logAction } from '../../../utils/audit.ts';
+import { invalidateCache, invalidateCacheByPrefix } from '../../../utils/cache.ts';
 
 export const all = () => async (c: Context) => {
   const limit = Math.min(Number(c.req.query('limit')) || 10, 50);
@@ -112,6 +113,9 @@ export const create = () => async (c: Context) => {
         ipAddress: c.req.header('x-forwarded-for') || c.req.header('remote-addr'),
       });
 
+      invalidateCacheByPrefix('public:blogs:');
+      invalidateCache('admin:stats:dashboard');
+
       return c.json({ success: true, data: newPost }, 201);
     });
   } catch (error: any) {
@@ -168,6 +172,9 @@ export const update = () => async (c: Context) => {
         ipAddress: c.req.header('x-forwarded-for') || c.req.header('remote-addr'),
       });
 
+      invalidateCacheByPrefix('public:blogs:');
+      invalidateCache('admin:stats:dashboard');
+
       return c.json({ success: true, data: updatedPost });
     });
   } catch (error: any) {
@@ -198,6 +205,9 @@ export const remove = () => async (c: Context) => {
     entityId: id,
     ipAddress: c.req.header('x-forwarded-for') || c.req.header('remote-addr'),
   });
+
+  invalidateCacheByPrefix('public:blogs:');
+  invalidateCache('admin:stats:dashboard');
 
   return c.json({
     success: true,
