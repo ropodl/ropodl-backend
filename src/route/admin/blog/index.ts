@@ -8,15 +8,15 @@ import {
 } from '../../../controller/admin/blog/index.ts';
 import categoryRoutes from './category.ts';
 import tagRoutes from './tag.ts';
-import { authenticate, authorize } from '../../../middleware/admin.ts';
+import { authenticate } from '../../../middleware/admin.ts';
 
 const app = new Hono();
 
-app.get('/', authenticate, authorize('blog.view'), all());
-app.get('/:id', authenticate, authorize('blog.view'), getOne());
-app.post('/', authenticate, authorize('blog.create'), create());
-app.patch('/:id', authenticate, authorize('blog.update'), update());
-app.delete('/:id', authenticate, authorize('blog.delete'), remove());
+app.get('/', authenticate, all());
+app.get('/:id', authenticate, getOne());
+app.post('/', authenticate, create());
+app.patch('/:id', authenticate, update());
+app.delete('/:id', authenticate, remove());
 
 app.route('/category', categoryRoutes);
 app.route('/tag', tagRoutes);

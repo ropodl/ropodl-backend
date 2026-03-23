@@ -5,12 +5,12 @@ import { mediaSchema } from '../../../schema/media.js';
 import { userSchema } from '../../../schema/users.js';
 import { count, desc } from 'drizzle-orm';
 import { remember } from '../../../utils/cache.js';
-import { authenticate, authorize } from '../../../middleware/admin.js';
+import { authenticate } from '../../../middleware/admin.js';
 
 const app = new Hono();
 const ADMIN_STATS_CACHE_TTL_MS = 15_000;
 
-app.get('/', authenticate, authorize('stats.view'), async (c) => {
+app.get('/', authenticate, async (c) => {
   try {
     const payload = await remember('admin:stats:dashboard', ADMIN_STATS_CACHE_TTL_MS, async () => {
       const [[blogsCount], [mediaCount], [usersCount], recentBlogs] = await Promise.all([

@@ -6,7 +6,6 @@ import { userSchema } from '../../schema/users.js';
 import bcrypt from 'bcrypt';
 import type { Context } from 'hono';
 import { invalidateCache } from '../../utils/cache.js';
-import { ADMIN_PERMISSIONS } from '../../constants/permissions.js';
 
 export const login = () => async (c: Context) => {
   const { email, password } = await c.req.json();
@@ -18,7 +17,6 @@ export const login = () => async (c: Context) => {
       fullname: userSchema.fullname,
       email: userSchema.email,
       avatar: userSchema.avatar,
-      permissions: userSchema.permissions,
       password: userSchema.password,
     })
     .from(userSchema)
@@ -37,7 +35,6 @@ export const login = () => async (c: Context) => {
     fullname: user.fullname,
     email: user.email,
     avatar: user.avatar,
-    permissions: Array.isArray(user.permissions) ? user.permissions : [],
     exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24, // Token expires in 1 day
   };
 
@@ -65,7 +62,6 @@ export const setup = () => async (c: Context) => {
       fullname,
       email,
       password: hashedPassword,
-      permissions: [...ADMIN_PERMISSIONS],
     })
     .returning();
 

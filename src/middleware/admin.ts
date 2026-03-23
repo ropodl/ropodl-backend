@@ -5,7 +5,6 @@ import { error } from '../utils/error.js';
 interface UserPayload {
   id: number;
   username: string;
-  permissions: string[];
 }
 
 export const authenticate = async (c: Context, next: Next) => {
@@ -22,20 +21,4 @@ export const authenticate = async (c: Context, next: Next) => {
   } catch (e) {
     return error(c, 'Invalid Token', 401);
   }
-};
-
-export const authorize = (permission: string) => async (c: Context, next: Next) => {
-  const user = c.get('user') as UserPayload;
-
-  if (!user) {
-    return error(c, 'Unauthorized', 401);
-  }
-
-  const permissions = Array.isArray(user.permissions) ? user.permissions : [];
-
-  if (!permissions.includes(permission)) {
-    return error(c, 'Forbidden', 403);
-  }
-
-  return next();
 };
