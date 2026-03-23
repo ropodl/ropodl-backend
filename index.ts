@@ -13,6 +13,7 @@ import routes from './src/route/index.js';
 import { pool } from './src/db/db.js';
 
 const app = new Hono();
+const port = Number(process.env.APP_PORT ?? process.env.PORT ?? 30033);
 
 if (process.env.NODE_ENV !== 'production') {
   app.use(logger());
@@ -27,17 +28,18 @@ app.get('/', async (c) => {
   return c.json({ message: 'Hello World' });
 });
 
-app.use('/media/*', serveStatic({ root: './media/' }));
+app.use('/media/*', serveStatic({ root: './' }));
 
 app.route('/api/v1/', routes);
 
 serve(
   {
     fetch: app.fetch,
-    port: parseInt(<any>process.env.APP_PORT) || 8000,
+    port,
+    hostname: '0.0.0.0',
   },
   (info) => {
-    console.log(`Server is running on http://localhost:${info.port}`);
+    console.log(`Server is running on http://${info.address}:${info.port}`);
   }
 );
 
